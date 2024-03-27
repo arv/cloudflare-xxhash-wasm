@@ -1,9 +1,5 @@
-// The .wasm is filled in by the build process, so the user doesn't need to load
-// xxhash.wasm by themselves because it's part of the bundle. Otherwise it
-// couldn't be distributed easily as the user would need to host xxhash.wasm
-// and then fetch it, to be able to use it.
-// eslint-disable-next-line no-undef
-const wasmBytes = new Uint8Array(WASM_PRECOMPILED_BYTES);
+// Cloudflare requires us to use import to prevent dynamic code execution
+import wasmBytes from './xxhash.wasm';
 
 const u32_BYTES = 4;
 const u64_BYTES = 8;
@@ -28,9 +24,8 @@ const XXH64_STATE_SIZE_BYTES =
 
 async function xxhash() {
 	const {
-		instance: {
-			exports: { mem, xxh32, xxh64, init32, update32, digest32, init64, update64, digest64 },
-		},
+		// Cloudflare wasmBytes is already a WebAssembly.Module
+		exports: { mem, xxh32, xxh64, init32, update32, digest32, init64, update64, digest64 },
 	} = await WebAssembly.instantiate(wasmBytes);
 
 	let memory = new Uint8Array(mem.buffer);

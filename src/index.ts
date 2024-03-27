@@ -8,6 +8,8 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
+import xxhash from './xxhash-wasm/index.js';
+
 export interface Env {
 	// Example binding to KV. Learn more at https://developers.cloudflare.com/workers/runtime-apis/kv/
 	// MY_KV_NAMESPACE: KVNamespace;
@@ -27,6 +29,21 @@ export interface Env {
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-		return new Response('Hello World!');
+		const hasher = await xxhash();
+
+		const input = 'The string that is being hashed';
+
+		let s = '';
+		// 32-bit version
+		s += '\n' + hasher.h32(input); // 3998627172 (decimal representation)
+		// For convenience, get hash as string of its zero-padded hex representation
+		s += '\n' + hasher.h32ToString(input); // "ee563564"
+
+		// 64-bit version
+		s += '\n' + hasher.h64(input); // 5776724552493396044n (BigInt)
+		// For convenience, get hash as string of its zero-padded hex representation
+		s += '\n' + hasher.h64ToString(input); // "502b0c5fc4a5704c"
+
+		return new Response(s);
 	},
 };
